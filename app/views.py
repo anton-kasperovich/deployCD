@@ -48,10 +48,6 @@ def authorized():
     if current_user.is_authenticated():
         return redirect(url_for('index'))
 
-    user = User.query.filter_by(email='a.kasperovich@axioma.lv').first()
-    print user.is_active()
-    print 'test'
-
     resp = gitlab.authorized_response()
     if resp is None:
         return 'Access denied: reason=%s error=%s' % (
