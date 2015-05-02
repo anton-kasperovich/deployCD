@@ -1,3 +1,9 @@
+# Misc
+.idea/
+.DS_Store
+Thumbs.db
+*.sublime-*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
