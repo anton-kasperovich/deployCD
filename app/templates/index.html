@@ -1,0 +1,84 @@
+{% extends "bootstrap/base.html" %}
+
+{% block content %}
+<div class='navbar navbar-default navbar-static-top'>
+    <div class='container'>
+        <div class='navbar-header'>
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <img height="25" src="{{ url_for('static', filename='logo-big.png') }}">
+            </a>
+        </div>
+        <div class='collapse navbar-collapse'>
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <a href="{{ url_for('logout') }}">
+                        <i class='glyphicon glyphicon-log-out'></i> Logout
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <table class="table table-condensed">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Project</th>
+            <th>Branch</th>
+            <th>Last deploy</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for project in projects.items %}
+        <tr>
+            <td>
+                {{project.id}}
+            </td>
+            <td>
+                <a href="{{ url_for('project', project_id = project.id) }}">{{project.title}}</a>
+            </td>
+            <td>
+                master
+            </td>
+            <td>
+                <span class="label label-warning">PENDING</span>
+            </td>
+            <td>
+                <div class="btn-group">
+                    <a href="#" class="btn btn-default btn-xs">Deploy to</a>
+                    <a href="#" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown"
+                       aria-expanded="false">
+                        <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#">Demo</a></li>
+                        <li class="divider"></li>
+                        <li><a href="#">Staging</a></li>
+                        <li><a href="#">Production</a></li>
+                    </ul>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <ul class="pager">
+        <li class="previous{% if not projects.has_prev %} disabled{% endif %}">
+            <a href="{{ url_for('index', page = projects.prev_num) }}">← Newer</a>
+        </li>
+        <li class="next{% if not projects.has_next %} disabled{% endif %}">
+            <a href="{{ url_for('index', page = projects.next_num) }}">Older →</a>
+        </li>
+    </ul>
+</div>
+
+{% endblock %}
+
+{% block styles %}
+{{super()}}
+<link rel="stylesheet" href="https://bootswatch.com/flatly/bootstrap.min.css">
+{% endblock %}

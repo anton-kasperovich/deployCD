@@ -1,0 +1,14 @@
+{% extends "bootstrap/base.html" %}
+
+{% block content %}
+<div class='container container-body'>
+    <div class='login-block'>
+        <h2>Login using GitLab account</h2>
+        <p class='light'>Make sure you have account on GitLab server</p>
+        <hr>
+        <a href="{{ url_for('login_gitlab') }}" class="btn btn-success btn-lg">
+            Login with GitLab
+        </a>
+    </div>
+</div>
+{% endblock %}
