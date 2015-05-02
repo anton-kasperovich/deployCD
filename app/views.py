@@ -8,7 +8,7 @@ from models import User, Project, ROLE_USER, ROLE_ADMIN
 @app.route('/')
 @app.route('/projects')
 @app.route('/projects/<int:page>')
-def index(page = 1):
+def index(page=1):
     if current_user.is_authenticated():
         projects = Project.query.order_by(Project.id).paginate(page, 5, False)
         return render_template('index.html', projects=projects)
@@ -61,7 +61,12 @@ def authorized():
     user = User.query.filter_by(email=me.data['email']).first()
     if not user:
         role = ROLE_ADMIN if me.data['is_admin'] else ROLE_USER
-        user = User(role=role, email=me.data['email'], avatar_url=me.data['avatar_url'], enabled=True)
+        user = User(
+            role=role,
+            email=me.data['email'],
+            avatar_url=me.data['avatar_url'],
+            enabled=True
+        )
         db.session.add(user)
         db.session.commit()
 
