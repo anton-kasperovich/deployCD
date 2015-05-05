@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+{{ utils.flashed_messages() }}
+
+<div class="container">
+    <div class="pull-left">
+        <h1>{{ project.title }} project</h1>
+    </div>
+    <div class="pull-right">
+        <a class="btn btn-success btn-sm" href="{{ url_for('project_create') }}" role="button">Edit</a>
+    </div>
+</div>
+{% endblock %}
