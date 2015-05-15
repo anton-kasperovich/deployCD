@@ -1,7 +1,8 @@
-from flask import render_template, url_for, request, redirect, session
+from flask import render_template, flash, url_for, request, redirect, session
 from flask_login import login_user, logout_user, current_user, login_required
 
 from app import app, db, gitlab, login_manager
+from forms import ProjectForm
 from models import User, Project, ROLE_USER, ROLE_ADMIN
 
 
@@ -10,17 +11,53 @@ from models import User, Project, ROLE_USER, ROLE_ADMIN
 @app.route('/projects/<int:page>')
 def index(page=1):
     if current_user.is_authenticated():
-        projects = Project.query.order_by(Project.id).paginate(page, 5, False)
+        projects = Project.query.order_by(Project.deploy_at.desc(), Project.updated_at.desc()).paginate(page, 10, False)
         return render_template('index.html', projects=projects)
 
     return redirect(url_for('login'))
+
+
+@app.route('/project/create', methods=["GET", "POST"])
+@login_required
+def project_create():
+    form = ProjectForm()
+    if form.validate_on_submit():
+        new_project = Project(
+            title=form.title.data,
+            branch=form.branch.data,
+            user_id=current_user.get_id(),
+            repo_url=form.repo_url.data
+        )
+        db.session.add(new_project)
+        db.session.commit()
+
+        flash('Project has been created successfully.', 'success')
+        return redirect(url_for('project', project_id=new_project.id))
+
+    return render_template('project/form.html', form=form, action_url=url_for('project_create'))
+
+
+@app.route('/project/<int:project_id>/edit', methods=["GET", "POST"])
+@login_required
+def project_edit(project_id):
+    project = Project.query.filter_by(id=project_id).first_or_404()
+    form = ProjectForm(obj=project)
+
+    if request.method == 'POST' and form.validate():
+        form.populate_obj(project)
+        db.session.commit()
+
+        flash('Project has been updated successfully.', 'success')
+        return redirect(url_for('project', project_id=project.id))
+
+    return render_template('project/form.html', form=form, action_url=url_for('project_edit', project_id=project.id))
 
 
 @app.route('/project/<int:project_id>')
 @login_required
 def project(project_id):
     project = Project.query.filter_by(id=project_id).first_or_404()
-    return render_template('project.html', project=project)
+    return render_template('project/show.html', project=project)
 
 
 @app.route('/login')

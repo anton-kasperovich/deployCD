@@ -1,4 +1,5 @@
 from app import db
+from datetime import datetime
 
 ROLE_USER = 0
 ROLE_ADMIN = 1
@@ -6,7 +7,8 @@ ROLE_ADMIN = 1
 projects_users = db.Table(
     'project_user',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
-    db.Column('project_id', db.Integer, db.ForeignKey('project.id'))
+    db.Column('project_id', db.Integer, db.ForeignKey('project.id')),
+    db.Column('is_owner', db.Boolean, default=False)
 )
 
 projects_builds = db.Table(
@@ -55,12 +57,23 @@ class User(db.Model):
 
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    logo = db.Column(db.String(255), unique=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     title = db.Column(db.String(255), unique=True)
+    branch = db.Column(db.String(255), unique=False)
+    repo_url = db.Column(db.String(255), unique=True)
+    deploy_at = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime)
+    updated_at = db.Column(db.DateTime)
 
-    def __init__(self, title, logo):
+    def __init__(self, user_id, title, branch, repo_url, deploy_at=None):
+        self.user_id = user_id
         self.title = title
-        self.logo = logo
+        self.branch = branch
+        self.repo_url = repo_url
+        self.deploy_at = deploy_at
+        if self.created_at is None:
+            self.created_at = datetime.utcnow()
+        self.updated_at = datetime.utcnow()
 
     def __repr__(self):
         return '<Project %r>' % self.title
