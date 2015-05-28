@@ -37,7 +37,7 @@
             </td>
             <td class="col-md-2">
                 <div class="btn-group">
-                    <a href="#" class="btn btn-primary btn-xs">Deploy</a>
+                    <a href="{{ url_for('project_deploy', project_id=project.id) }}" class="btn btn-primary btn-xs">Deploy</a>
                     <a href="#" class="btn btn-default btn-xs dropdown-toggle">
                         <span class="caret"></span>
                     </a>

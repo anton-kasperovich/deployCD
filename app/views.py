@@ -5,6 +5,11 @@ from app import app, db, gitlab, login_manager
 from forms import ProjectForm
 from models import User, Project, ROLE_USER, ROLE_ADMIN
 
+import copy
+import ansible.runner
+import ansible.inventory
+import ansible.callbacks
+import ansible.utils
 
 @app.route('/')
 @app.route('/projects')
@@ -60,6 +65,42 @@ def project(project_id):
     return render_template('project/show.html', project=project)
 
 
+@app.route('/project/<int:project_id>/servers')
+@login_required
+def project_servers(project_id):
+    project = Project.query.filter_by(id=project_id).first_or_404()
+    return render_template('servers/list.html', project=project)
+
+
+@app.route('/project/<int:project_id>/deploy')
+@login_required
+def project_deploy(project_id):
+    project = Project.query.filter_by(id=project_id).first_or_404()
+
+    hosts = ["localhost"]
+    ansible.utils.VERBOSITY = 1
+
+    inventory = ansible.inventory.Inventory(hosts)
+    base_runner = ansible.runner.Runner(
+        pattern='all',
+        transport='local',
+        inventory=inventory,
+        # callbacks=runner_cb,
+        check=False,
+        background=1
+    )
+
+    runner = copy.copy(base_runner)
+    runner.module_name = 'git'
+    runner.module_args = 'repo=git@github.com:iniweb/ansible-vagrant-sf2.git'
+
+    result = runner.run()
+    print result
+
+    return render_template('project/deploy.html', project=project)
+
+
+
 @app.route('/login')
 def login():
     return render_template('login.html')
@@ -113,21 +154,21 @@ def authorized():
 
 
 @app.errorhandler(404)
-def not_found_error(error):
+def not_found_error():
     return render_template('404.html'), 404
 
 
 @app.errorhandler(500)
-def internal_error(error):
+def internal_error():
     db.session.rollback()
     return render_template('500.html'), 500
 
 
 @login_manager.user_loader
-def load_user(id):
-    return User.query.get(int(id))
+def load_user(user_id):
+    return User.query.get(user_id)
 
 
 @gitlab.tokengetter
-def get_gitlab_token(token=None):
+def get_gitlab_token():
     return session.get('gitlab_token')

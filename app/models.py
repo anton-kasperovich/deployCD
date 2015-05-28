@@ -1,5 +1,8 @@
-from app import db
 from datetime import datetime
+
+from sqlalchemy_utils import IPAddressType, ChoiceType
+
+from app import db
 
 ROLE_USER = 0
 ROLE_ADMIN = 1
@@ -11,9 +14,9 @@ projects_users = db.Table(
     db.Column('is_owner', db.Boolean, default=False)
 )
 
-projects_builds = db.Table(
-    'project_build',
-    db.Column('build_id', db.Integer, db.ForeignKey('build.id')),
+projects_deploys = db.Table(
+    'project_deploy',
+    db.Column('deploy_id', db.Integer, db.ForeignKey('deploy.id')),
     db.Column('project_id', db.Integer, db.ForeignKey('project.id'))
 )
 
@@ -64,6 +67,11 @@ class Project(db.Model):
     deploy_at = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime)
     updated_at = db.Column(db.DateTime)
+    servers = db.relationship(
+        'Server',
+        backref='project',
+        lazy='dynamic'
+    )
 
     def __init__(self, user_id, title, branch, repo_url, deploy_at=None):
         self.user_id = user_id
@@ -79,19 +87,51 @@ class Project(db.Model):
         return '<Project %r>' % self.title
 
 
-class Build(db.Model):
+class Deploy(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
     number = db.Column(db.String(140))
     timestamp = db.Column(db.DateTime)
     projects = db.relationship(
         'Project',
-        secondary=projects_builds,
-        primaryjoin=(projects_builds.c.build_id == id),
-        secondaryjoin=(projects_builds.c.project_id == id),
-        backref=db.backref('projects_builds', lazy='dynamic'),
+        secondary=projects_deploys,
+        primaryjoin=(projects_deploys.c.deploy_id == id),
+        secondaryjoin=(projects_deploys.c.project_id == id),
+        backref=db.backref('projects_deploys', lazy='dynamic'),
         lazy='dynamic'
     )
 
+    def __init__(self, project_id, number, timestamp):
+        self.project_id = project_id
+        self.number = number
+        self.timestamp = timestamp
+
     def __repr__(self):
-        return '<Build %r>' % (self.number)
+        return '<Deploy %r>' % (self.number)
+
+
+class Server(db.Model):
+    ROLES = [
+        (u'demo', u'Demo'),
+        (u'staging', u'Staging'),
+        (u'production', u'Production')
+    ]
+
+    id = db.Column(db.Integer, primary_key=True)
+    role = db.Column(ChoiceType(ROLES))
+    name = db.Column(db.String(255), unique=True)
+    provider = db.Column(db.String(255))
+    ssh_login = db.Column(db.String(255), default="developer")
+    ip_address = db.Column(IPAddressType)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
+
+    def __init__(self, role, name, provider, ssh_login, ip_address, project_id):
+        self.role = role
+        self.name = name
+        self.provider = provider
+        self.ssh_login = ssh_login
+        self.ip_address = ip_address
+        self.project_id = project_id
+
+    def __repr__(self):
+        return '<Server %r>' % (self.name)

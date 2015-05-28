@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+{{ utils.flashed_messages() }}
+
+<div class="container">
+    <div class="pull-left">
+        <h1>"{{ project.title }}" servers</h1>
+    </div>
+</div>
+
+<div class="container container-body">
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Server</th>
+            <th>Provider</th>
+            <th>Login</th>
+            <th>IP Address</th>
+            <th>Role</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for server in project.servers %}
+        <tr>
+            <td class="col-md-4">{{ server.name }}</td>
+            <td class="col-md-2">{{ server.provider }}</td>
+            <td class="col-md-1">{{ server.ssh_login }}</td>
+            <td class="col-md-2">{{ server.ip_address }}</td>
+            <td class="col-md-1">{{ server.role }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
